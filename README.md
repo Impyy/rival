@@ -6,6 +6,10 @@ The following mice are currently supported:
 
 * SteelSeries Rival 100
 
+## Screenshot
+
+![](https://u.impy.me/dl?l=bj01ug7RCqxiOdSb.png)
+
 ## Installation
 
 There are no pre-compiled binaries available at this time.
