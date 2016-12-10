@@ -4,21 +4,15 @@
 #include "gui.h"
 #include "util.h"
 
-static bool enable_preview = true;
 static uiWindow *window = NULL;
-
-static gui_handler_color *handler_color = NULL;
-static gui_handler_mode *handler_mode = NULL;
-static gui_handler_dpi *handler_dpi = NULL;
-static gui_handler_rate *handler_rate = NULL;
-static gui_handler_close *handler_close = NULL;
+static struct gui_model *model = NULL;
 
 static int on_closing(uiWindow *w, void *data)
 {
 	uiQuit();
 
-	if (handler_close) {
-		handler_close();
+	if (model->handler_close) {
+		model->handler_close();
 	}
 
 	return 1;
@@ -33,7 +27,16 @@ static int on_should_quit(void *data)
 
 static void on_apply_clicked(uiButton *button, void *data)
 {
+	if (model->handler_apply) {
+		model->handler_apply();
+	}
+}
 
+static void on_save_clicked(uiButton *button, void *data)
+{
+	if (model->handler_save) {
+		model->handler_save();
+	}
 }
 
 static void on_close_clicked(uiButton *button, void *data)
@@ -43,66 +46,66 @@ static void on_close_clicked(uiButton *button, void *data)
 
 static void on_preview_toggled(uiCheckbox *button, void *data)
 {
-	enable_preview = uiCheckboxChecked(button);
+	*model->enable_preview = uiCheckboxChecked(button);
 }
 
 static void on_mode_selected(uiCombobox *box, void *data)
 {
-	if (!enable_preview) {
+	int mode = uiComboboxSelected(box);
+	*model->light_mode = mode;
+
+	if (!*model->enable_preview) {
 		return;
 	}
 
-	if (handler_mode) {
-		int mode = uiComboboxSelected(box);
-
-		// map to RIVAL_LIGHT_MODE by adding 1
-		handler_mode(mode + 1);
+	if (model->handler_mode) {
+		model->handler_mode(mode);
 	}
 }
 
 static void on_dpi_selected(uiCombobox *box, void *data)
 {
-	if (!enable_preview) {
+	int dpi = uiComboboxSelected(box);
+	*model->dpi = dpi;
+
+	if (!*model->enable_preview) {
 		return;
 	}
 
-	if (handler_dpi) {
-		int dpi = uiComboboxSelected(box);
-
-		// map to RIVAL_DPI by adding 1
-		handler_dpi(RIVAL_DPI_PRESET_FIRST, dpi + 1);
+	if (model->handler_dpi) {
+		model->handler_dpi(RIVAL_DPI_PRESET_FIRST, dpi);
 	}
 }
 
 static void on_rate_selected(uiCombobox *box, void *data)
 {
-	if (!enable_preview) {
+	int rate = uiComboboxSelected(box);
+	*model->rate = rate;
+
+	if (!*model->enable_preview) {
 		return;
 	}
 
-	if (handler_rate) {
-		int rate = uiComboboxSelected(box);
-
-		// map to RIVAL_RATE by adding 1
-		handler_rate(rate + 1);
+	if (model->handler_rate) {
+		model->handler_rate(rate);
 	}
 }
 
 static void on_color_changed(uiColorButton *button, void *data)
 {
-	if (!enable_preview) {
-		return;
-	}
-
 	double r, g, b, a = {0};
 	uiColorButtonColor(button, &r, &g, &b, &a);
 
-	r = convert_color(r);
-	g = convert_color(g);
-	b = convert_color(b);
+	*model->color_r = color_to_byte(r);
+	*model->color_g = color_to_byte(g);
+	*model->color_b = color_to_byte(b);
 
-	if (handler_color) {
-		handler_color(r, g, b);
+	if (!*model->enable_preview) {
+		return;
+	}
+
+	if (model->handler_color) {
+		model->handler_color(*model->color_r, *model->color_g, *model->color_b);
 	}
 }
 
@@ -116,23 +119,31 @@ bool gui_setup()
 		return false;
 	}
 
+	uiButton *saveButton = uiNewButton("Save");
+	uiButtonOnClicked(saveButton, on_save_clicked, NULL);
 	uiButton *applyButton = uiNewButton("Apply");
 	uiButtonOnClicked(applyButton, on_apply_clicked, NULL);
 	uiButton *closeButton = uiNewButton("Close");
 	uiButtonOnClicked(closeButton, on_close_clicked, NULL);
 	uiCheckbox *previewCheckbox = uiNewCheckbox("Enable preview");
-	uiCheckboxSetChecked(previewCheckbox, enable_preview);
+	uiCheckboxSetChecked(previewCheckbox, *model->enable_preview);
 	uiCheckboxOnToggled(previewCheckbox, on_preview_toggled, NULL);
 
 	uiBox *buttonBox = uiNewHorizontalBox();
 	uiBoxSetPadded(buttonBox, true);
+	uiBoxAppend(buttonBox, uiControl(saveButton), false);
 	uiBoxAppend(buttonBox, uiControl(applyButton), false);
 	uiBoxAppend(buttonBox, uiControl(closeButton), false);
 	uiBoxAppend(buttonBox, uiControl(previewCheckbox), false);
 
+	double r = color_to_double(*model->color_r);
+	double g = color_to_double(*model->color_g);
+	double b = color_to_double(*model->color_b);
+
 	uiLabel *colorLabel = uiNewLabel("Color");
 	uiColorButton *colorButton = uiNewColorButton();
 	uiColorButtonOnChanged(colorButton, on_color_changed, NULL);
+	uiColorButtonSetColor(colorButton, r, g, b, 255.0);
 	uiLabel *modeLabel = uiNewLabel("Mode");
 	uiCombobox *modeCombobox = uiNewCombobox();
 	uiComboboxOnSelected(modeCombobox, on_mode_selected, NULL);
@@ -141,6 +152,7 @@ bool gui_setup()
 	uiComboboxAppend(modeCombobox, "Breathe (medium)");
 	uiComboboxAppend(modeCombobox, "Breathe (fast)");
 	uiComboboxAppend(modeCombobox, "Off");
+	uiComboboxSetSelected(modeCombobox, *model->light_mode);
 
 	uiLabel *dpiLabel = uiNewLabel("Sensitivity in DPI");
 	uiCombobox *dpiCombobox = uiNewCombobox();
@@ -153,6 +165,7 @@ bool gui_setup()
 	uiComboboxAppend(dpiCombobox, "1000");
 	uiComboboxAppend(dpiCombobox, "500");
 	uiComboboxAppend(dpiCombobox, "250");
+	uiComboboxSetSelected(dpiCombobox, *model->dpi);
 
 	uiLabel *rateLabel = uiNewLabel("Polling rate in Hz");
 	uiCombobox *rateCombobox = uiNewCombobox();
@@ -161,6 +174,7 @@ bool gui_setup()
 	uiComboboxAppend(rateCombobox, "500");
 	uiComboboxAppend(rateCombobox, "250");
 	uiComboboxAppend(rateCombobox, "125");
+	uiComboboxSetSelected(rateCombobox, *model->rate);
 
 	uiBox *sensBox = uiNewVerticalBox();
 	uiBoxSetPadded(sensBox, true);
@@ -228,27 +242,7 @@ void gui_set_title(const char *title)
 	uiWindowSetTitle(window, title);
 }
 
-void gui_register_handler_color(gui_handler_color *h)
+void gui_set_model(struct gui_model *m)
 {
-	handler_color = h;
-}
-
-void gui_register_handler_mode(gui_handler_mode *h)
-{
-	handler_mode = h;
-}
-
-void gui_register_handler_dpi(gui_handler_dpi *h)
-{
-	handler_dpi = h;
-}
-
-void gui_register_handler_rate(gui_handler_rate *h)
-{
-	handler_rate = h;
-}
-
-void gui_register_handler_close(gui_handler_close *h)
-{
-	handler_close = h;
+	model = m;
 }

@@ -3,11 +3,13 @@
 #include <pthread.h>
 #include <signal.h>
 
+#include "config.h"
 #include "gui.h"
 #include "rival.h"
 
 static bool finished = false;
 static struct rival_device *dev = NULL;
+static struct rival_config *config;
 
 static void on_change_color(uint8_t r, uint8_t g, uint8_t b)
 {
@@ -16,17 +18,34 @@ static void on_change_color(uint8_t r, uint8_t g, uint8_t b)
 
 static void on_change_mode(RIVAL_LIGHT_MODE mode)
 {
-	rival_set_light_mode(dev, mode);
+	// map to the correct RIVAL_LIGHT_MODE by adding 1
+	rival_set_light_mode(dev, mode + 1);
 }
 
 static void on_change_dpi(RIVAL_DPI_PRESET preset, RIVAL_DPI dpi)
 {
-	rival_set_dpi(dev, preset, dpi);
+	// map to the correct RIVAL_DPI by adding 1
+	rival_set_dpi(dev, preset, dpi + 1);
 }
 
 static void on_change_rate(RIVAL_RATE rate)
 {
-	rival_set_rate(dev, rate);
+	// map to the correct RIVAL_RATE by adding 1
+	rival_set_rate(dev, rate + 1);
+}
+
+static void on_save()
+{
+	rival_save(dev);
+	rival_config_save(config);
+}
+
+static void on_apply()
+{
+	rival_set_light_color(dev, config->color_r, config->color_g, config->color_b);
+	rival_set_light_mode(dev, config->light_mode);
+	rival_set_dpi(dev, RIVAL_DPI_PRESET_FIRST, config->dpi);
+	rival_set_rate(dev, config->rate);
 }
 
 static void on_close()
@@ -43,11 +62,33 @@ int main()
 {
 	signal(SIGINT, sig_handler);
 
-	gui_register_handler_color(&on_change_color);
-	gui_register_handler_mode(&on_change_mode);
-	gui_register_handler_dpi(&on_change_dpi);
-	gui_register_handler_rate(&on_change_rate);
-	gui_register_handler_close(&on_close);
+	if (!rival_config_prep()) {
+		printf("unable to prepare config directory\n");
+		return 1;
+	}
+	if (!rival_config_load(&config)) {
+		printf("unable to load config\n");
+		return 1;
+	}
+
+	struct gui_model model = {
+		.handler_color = &on_change_color,
+		.handler_mode = &on_change_mode,
+		.handler_dpi = &on_change_dpi,
+		.handler_rate = &on_change_rate,
+		.handler_save = &on_save,
+		.handler_apply = &on_apply,
+		.handler_close = &on_close,
+
+		.dpi = &config->dpi,
+		.rate = &config->rate,
+		.light_mode = &config->light_mode,
+		.color_r = &config->color_r,
+		.color_g = &config->color_g,
+		.color_b = &config->color_b,
+		.enable_preview = &config->enable_preview
+	};
+	gui_set_model(&model);
 
 	if (!gui_setup()) {
 		return 1;
@@ -73,6 +114,7 @@ int main()
 		nanosleep(&ts, NULL);
 	}
 
+	rival_config_free(config);
 	rival_close(dev);
 	return 0;
 }

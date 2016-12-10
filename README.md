@@ -24,6 +24,7 @@ You'll need CMake to run the build script.
 
 Dependencies:
 * libudev
+* [libconfig](http://www.hyperrealm.com/libconfig)
 * [libui](https://github.com/andlabs/libui)
 
 ```sh
