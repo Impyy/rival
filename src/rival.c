@@ -98,7 +98,7 @@ bool rival_set_rate(struct rival_device *dev, RIVAL_RATE rate)
 
 bool rival_save(struct rival_device *dev)
 {
-	uint8_t payload[] = { 0x09 };
+	uint8_t payload[] = { 0x09, 0x00 };
 	return rival_set_feature(dev, payload, sizeof(payload));
 }
 
