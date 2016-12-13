@@ -24,7 +24,8 @@ bool rival_config_load(struct rival_config **config)
 	} else {
 		int r, g, b;
 
-		if (!(config_lookup_int(&inner_config, "dpi", (int *)&tmp_config.dpi)
+		if (!(config_lookup_int(&inner_config, "dpi_preset1", (int *)&tmp_config.dpi_preset1)
+			&& config_lookup_int(&inner_config, "dpi_preset2", (int *)&tmp_config.dpi_preset2)
 			&& config_lookup_int(&inner_config, "rate", (int *)&tmp_config.rate)
 			&& config_lookup_int(&inner_config, "light_mode", (int *)&tmp_config.light_mode)
 			&& config_lookup_int(&inner_config, "color_r", &r)
@@ -50,8 +51,10 @@ bool rival_config_save(struct rival_config *config)
 	config_init(&inner_config);
 	config_setting_t *root = config_root_setting(&inner_config);
 
-	config_setting_t *setting = config_setting_add(root, "dpi", CONFIG_TYPE_INT);
-	config_setting_set_int(setting, config->dpi);
+	config_setting_t *setting = config_setting_add(root, "dpi_preset1", CONFIG_TYPE_INT);
+	config_setting_set_int(setting, config->dpi_preset1);
+	setting = config_setting_add(root, "dpi_preset2", CONFIG_TYPE_INT);
+	config_setting_set_int(setting, config->dpi_preset2);
 	setting = config_setting_add(root, "rate", CONFIG_TYPE_INT);
 	config_setting_set_int(setting, config->rate);
 	setting = config_setting_add(root, "light_mode", CONFIG_TYPE_INT);
@@ -70,7 +73,8 @@ bool rival_config_save(struct rival_config *config)
 
 void rival_config_default(struct rival_config *config)
 {
-	config->dpi = RIVAL_DPI_1250;
+	config->dpi_preset1 = RIVAL_DPI_1250;
+	config->dpi_preset1 = RIVAL_DPI_2000;
 	config->rate = RIVAL_RATE_1000;
 	config->light_mode = RIVAL_LIGHT_MODE_STATIC;
 	config->color_r = 0x00;

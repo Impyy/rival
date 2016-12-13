@@ -35,7 +35,8 @@ static void on_apply()
 {
 	rival_set_light_color(dev, config->color_r, config->color_g, config->color_b);
 	rival_set_light_mode(dev, config->light_mode);
-	rival_set_dpi(dev, RIVAL_DPI_PRESET_FIRST, config->dpi);
+	rival_set_dpi(dev, RIVAL_DPI_PRESET1, config->dpi_preset1);
+	rival_set_dpi(dev, RIVAL_DPI_PRESET2, config->dpi_preset2);
 	rival_set_rate(dev, config->rate);
 }
 
@@ -79,7 +80,8 @@ int main()
 		.handler_apply = &on_apply,
 		.handler_close = &on_close,
 
-		.dpi = &config->dpi,
+		.dpi_preset1 = &config->dpi_preset1,
+		.dpi_preset2 = &config->dpi_preset2,
 		.rate = &config->rate,
 		.light_mode = &config->light_mode,
 		.color_r = &config->color_r,

@@ -15,7 +15,8 @@ typedef void gui_handler_apply();
 
 struct gui_model {
 	// pointers to config entries
-	RIVAL_DPI *dpi;
+	RIVAL_DPI *dpi_preset1;
+	RIVAL_DPI *dpi_preset2;
 	RIVAL_RATE *rate;
 	RIVAL_LIGHT_MODE *light_mode;
 	uint8_t *color_r;

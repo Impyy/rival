@@ -7,7 +7,8 @@
 static const char *rival_config_filename = "rival.conf";
 
 struct rival_config {
-	RIVAL_DPI dpi;
+	RIVAL_DPI dpi_preset1;
+	RIVAL_DPI dpi_preset2;
 	RIVAL_RATE rate;
 	RIVAL_LIGHT_MODE light_mode;
 	uint8_t color_r;

@@ -65,15 +65,22 @@ static void on_mode_selected(uiCombobox *box, void *data)
 
 static void on_dpi_selected(uiCombobox *box, void *data)
 {
+	uiRadioButtons *presetButtons = (uiRadioButtons *)data;
 	int dpi = uiComboboxSelected(box);
-	*model->dpi = dpi;
+	int preset = uiRadioButtonsSelected(presetButtons);
+
+	if (preset == RIVAL_DPI_PRESET1) {
+		*model->dpi_preset1 = dpi;
+	} else if (preset == RIVAL_DPI_PRESET2) {
+		*model->dpi_preset2 = dpi;
+	}
 
 	if (!*model->enable_preview) {
 		return;
 	}
 
 	if (model->handler_dpi) {
-		model->handler_dpi(RIVAL_DPI_PRESET_FIRST, dpi);
+		model->handler_dpi(preset, dpi);
 	}
 }
 
@@ -106,6 +113,18 @@ static void on_color_changed(uiColorButton *button, void *data)
 
 	if (model->handler_color) {
 		model->handler_color(*model->color_r, *model->color_g, *model->color_b);
+	}
+}
+
+static void on_preset_selected(uiRadioButtons *buttons, void *data)
+{
+	uiCombobox *dpiBox = (uiCombobox *)data;
+	int preset = uiRadioButtonsSelected(buttons);
+
+	if (preset == RIVAL_DPI_PRESET1) {
+		uiComboboxSetSelected(dpiBox, *model->dpi_preset1);
+	} else if (preset == RIVAL_DPI_PRESET2) {
+		uiComboboxSetSelected(dpiBox, *model->dpi_preset2);
 	}
 }
 
@@ -155,8 +174,10 @@ bool gui_setup()
 	uiComboboxSetSelected(modeCombobox, *model->light_mode);
 
 	uiLabel *dpiLabel = uiNewLabel("Sensitivity in DPI");
+	uiRadioButtons *presetButtons = uiNewRadioButtons();
+	uiRadioButtonsAppend(presetButtons, "Preset 1");
+	uiRadioButtonsAppend(presetButtons, "Preset 2");
 	uiCombobox *dpiCombobox = uiNewCombobox();
-	uiComboboxOnSelected(dpiCombobox, on_dpi_selected, NULL);
 	uiComboboxAppend(dpiCombobox, "4000");
 	uiComboboxAppend(dpiCombobox, "2000");
 	uiComboboxAppend(dpiCombobox, "1750");
@@ -165,7 +186,10 @@ bool gui_setup()
 	uiComboboxAppend(dpiCombobox, "1000");
 	uiComboboxAppend(dpiCombobox, "500");
 	uiComboboxAppend(dpiCombobox, "250");
-	uiComboboxSetSelected(dpiCombobox, *model->dpi);
+	uiRadioButtonsSetSelected(presetButtons, RIVAL_DPI_PRESET1);
+	uiComboboxSetSelected(dpiCombobox, *model->dpi_preset1);
+	uiRadioButtonsOnSelected(presetButtons, on_preset_selected, dpiCombobox);
+	uiComboboxOnSelected(dpiCombobox, on_dpi_selected, presetButtons);
 
 	uiLabel *rateLabel = uiNewLabel("Polling rate in Hz");
 	uiCombobox *rateCombobox = uiNewCombobox();
@@ -179,6 +203,7 @@ bool gui_setup()
 	uiBox *sensBox = uiNewVerticalBox();
 	uiBoxSetPadded(sensBox, true);
 	uiBoxAppend(sensBox, uiControl(dpiLabel), false);
+	uiBoxAppend(sensBox, uiControl(presetButtons), false);
 	uiBoxAppend(sensBox, uiControl(dpiCombobox), false);
 	uiBoxAppend(sensBox, uiControl(rateLabel), false);
 	uiBoxAppend(sensBox, uiControl(rateCombobox), false);
