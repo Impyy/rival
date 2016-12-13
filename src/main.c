@@ -18,20 +18,17 @@ static void on_change_color(uint8_t r, uint8_t g, uint8_t b)
 
 static void on_change_mode(RIVAL_LIGHT_MODE mode)
 {
-	// map to the correct RIVAL_LIGHT_MODE by adding 1
-	rival_set_light_mode(dev, mode + 1);
+	rival_set_light_mode(dev, mode);
 }
 
 static void on_change_dpi(RIVAL_DPI_PRESET preset, RIVAL_DPI dpi)
 {
-	// map to the correct RIVAL_DPI by adding 1
-	rival_set_dpi(dev, preset, dpi + 1);
+	rival_set_dpi(dev, preset, dpi);
 }
 
 static void on_change_rate(RIVAL_RATE rate)
 {
-	// map to the correct RIVAL_RATE by adding 1
-	rival_set_rate(dev, rate + 1);
+	rival_set_rate(dev, rate);
 }
 
 static void on_apply()

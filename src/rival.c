@@ -80,19 +80,22 @@ bool rival_set_light_mode(struct rival_device *dev, RIVAL_LIGHT_MODE mode)
 		return rival_set_light_color(dev, 0, 0, 0);
 	}
 
-	uint8_t payload[] = { 0x07, 0x00, mode };
+	// map to the correct RIVAL_LIGHT_MODE by adding 1
+	uint8_t payload[] = { 0x07, 0x00, mode + 1 };
 	return rival_set_feature(dev, payload, sizeof(payload));
 }
 
 bool rival_set_dpi(struct rival_device *dev, RIVAL_DPI_PRESET preset, RIVAL_DPI dpi)
 {
-	uint8_t payload[] = { 0x03, preset, dpi };
+	// map to the correct RIVAL_DPI_PRESET and RIVAL_DPI by adding 1
+	uint8_t payload[] = { 0x03, preset + 1, dpi + 1 };
 	return rival_set_feature(dev, payload, sizeof(payload));
 }
 
 bool rival_set_rate(struct rival_device *dev, RIVAL_RATE rate)
 {
-	uint8_t payload[] = { 0x04, 0x00, rate };
+	// map to the correct RIVAL_RATE by adding 1
+	uint8_t payload[] = { 0x04, 0x00, rate + 1 };
 	return rival_set_feature(dev, payload, sizeof(payload));
 }
 
