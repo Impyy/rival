@@ -18,6 +18,11 @@ static void on_change_color(uint8_t r, uint8_t g, uint8_t b)
 
 static void on_change_mode(RIVAL_LIGHT_MODE mode)
 {
+	// set the light color just in case the previous mode was RIVAL_LIGHT_MODE_OFF
+	if (mode != RIVAL_LIGHT_MODE_OFF) {
+		rival_set_light_color(dev, config->color_r, config->color_g, config->color_b);
+	}
+
 	rival_set_light_mode(dev, mode);
 }
 
