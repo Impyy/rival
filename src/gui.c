@@ -216,7 +216,7 @@ bool gui_setup()
 	uiBoxAppend(mainBox, uiControl(firstBox), true);
 	uiBoxAppend(mainBox, uiControl(buttonBox), false);
 
-	window = uiNewWindow("rival", 500, 500, true);
+	window = uiNewWindow("rival", 400, 200, true);
 	uiWindowSetMargined(window, true);
 	uiWindowOnClosing(window, on_closing, NULL);
 	uiWindowSetChild(window, uiControl(mainBox));
