@@ -13,6 +13,12 @@ static struct rival_config *config;
 
 static void on_change_color(uint8_t r, uint8_t g, uint8_t b)
 {
+	// don't set the color if mode is equal to RIVAL_LIGHT_MODE_OFF
+	// as this will turn the light back on
+	if (config->light_mode == RIVAL_LIGHT_MODE_OFF) {
+		return;
+	}
+
 	rival_set_light_color(dev, r, g, b);
 }
 
