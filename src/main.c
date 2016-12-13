@@ -34,18 +34,20 @@ static void on_change_rate(RIVAL_RATE rate)
 	rival_set_rate(dev, rate + 1);
 }
 
-static void on_save()
-{
-	rival_save(dev);
-	rival_config_save(config);
-}
-
 static void on_apply()
 {
 	rival_set_light_color(dev, config->color_r, config->color_g, config->color_b);
 	rival_set_light_mode(dev, config->light_mode);
 	rival_set_dpi(dev, RIVAL_DPI_PRESET_FIRST, config->dpi);
 	rival_set_rate(dev, config->rate);
+}
+
+static void on_save()
+{
+	on_apply();
+
+	rival_save(dev);
+	rival_config_save(config);
 }
 
 static void on_close()

@@ -107,7 +107,6 @@ bool rival_get_name(struct rival_device *dev, uint8_t *buffer, size_t buffer_siz
 	return ioctl(dev->fd, HIDIOCGRAWNAME(buffer_size), buffer) >= 0;
 }
 
-
 void rival_close(struct rival_device *dev)
 {
 	if (!dev) {
