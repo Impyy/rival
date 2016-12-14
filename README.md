@@ -8,7 +8,7 @@ The following mice are currently supported:
 
 ## Screenshot
 
-![](https://u.impy.me/dl?l=bj01ug7RCqxiOdSb.png)
+![](https://u.impy.me/dl?l=GaBqORVaEflkiB9g.png)
 
 ## Installation
 
