@@ -25,13 +25,13 @@ bool rival_config_load(struct rival_config **config)
 		int dpi_preset1, dpi_preset2, rate, light_mode, r, g, b, enable_preview;
 
 		if (!(config_lookup_int(&inner_config, "dpi_preset1", &dpi_preset1)
-			&& config_lookup_int(&inner_config, "dpi_preset2", &dpi_preset2))
+			&& config_lookup_int(&inner_config, "dpi_preset2", &dpi_preset2)
 			&& config_lookup_int(&inner_config, "rate", &rate)
 			&& config_lookup_int(&inner_config, "light_mode", &light_mode)
 			&& config_lookup_int(&inner_config, "color_r", &r)
 			&& config_lookup_int(&inner_config, "color_g", &g)
 			&& config_lookup_int(&inner_config, "color_b", &b)
-			&& config_lookup_bool(&inner_config, "enable_preview", &enable_preview)) {
+			&& config_lookup_bool(&inner_config, "enable_preview", &enable_preview))) {
 			return false;
 		}
 
