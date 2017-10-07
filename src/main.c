@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <time.h>
 #include <pthread.h>
 #include <signal.h>
@@ -7,8 +8,8 @@
 #include "gui.h"
 #include "rival.h"
 
-static bool finished = false;
-static struct rival_device *dev = NULL;
+static bool end = false;
+static struct rival *rival = NULL;
 static struct rival_config *config;
 
 static void on_change_color(uint8_t r, uint8_t g, uint8_t b)
@@ -19,49 +20,65 @@ static void on_change_color(uint8_t r, uint8_t g, uint8_t b)
 		return;
 	}
 
-	rival_set_light_color(dev, r, g, b);
+	rival_set_light_color(rival, r, g, b);
 }
 
 static void on_change_mode(RIVAL_LIGHT_MODE mode)
 {
 	// set the light color just in case the previous mode was RIVAL_LIGHT_MODE_OFF
 	if (mode != RIVAL_LIGHT_MODE_OFF) {
-		rival_set_light_color(dev, config->color_r, config->color_g, config->color_b);
+		rival_set_light_color(rival, config->color_r, config->color_g, config->color_b);
 	}
 
-	rival_set_light_mode(dev, mode);
+	rival_set_light_mode(rival, mode);
 }
 
 static void on_change_dpi(RIVAL_DPI_PRESET preset, RIVAL_DPI dpi)
 {
-	rival_set_dpi(dev, preset, dpi);
+	rival_set_dpi(rival, preset, dpi);
 }
 
 static void on_change_rate(RIVAL_RATE rate)
 {
-	rival_set_rate(dev, rate);
+	rival_set_rate(rival, rate);
 }
 
 static void on_apply()
 {
-	rival_set_light_color(dev, config->color_r, config->color_g, config->color_b);
-	rival_set_light_mode(dev, config->light_mode);
-	rival_set_dpi(dev, RIVAL_DPI_PRESET1, config->dpi_preset1);
-	rival_set_dpi(dev, RIVAL_DPI_PRESET2, config->dpi_preset2);
-	rival_set_rate(dev, config->rate);
+	rival_set_light_color(rival, config->color_r, config->color_g, config->color_b);
+	rival_set_light_mode(rival, config->light_mode);
+	rival_set_dpi(rival, RIVAL_DPI_PRESET1, config->dpi_preset1);
+	rival_set_dpi(rival, RIVAL_DPI_PRESET2, config->dpi_preset2);
+	rival_set_rate(rival, config->rate);
 }
 
 static void on_save()
 {
 	on_apply();
 
-	rival_save(dev);
+	rival_save(rival);
 	rival_config_save(config);
 }
 
 static void on_close()
 {
-	finished = true;
+	end = true;
+}
+
+static void on_rival_opened()
+{
+	static const size_t size = 256;
+	char *name = calloc(1, size);
+	if (rival_get_name(rival, name, size)) {
+		gui_queue((void (*)(void *))gui_set_title_heap, name);
+	}
+	gui_on_rival_opened();
+}
+
+static void on_rival_closed()
+{
+	gui_queue((void (*)(void *))gui_set_title, "rival");
+	gui_on_rival_closed();
 }
 
 static void sig_handler(int sig)
@@ -109,24 +126,9 @@ int main()
 	pthread_t gui_thread;
 	pthread_create(&gui_thread, NULL, &gui_main, NULL);
 
-	int error = rival_open_first(&dev);
-	if (error != 0) {
-		printf("unable to initialize librival: %d\n", error);
-		return 1;
-	}
-
-	char dev_name[256] = {0};
-	if (rival_get_name(dev, dev_name, sizeof(dev_name))) {
-		gui_queue((void (*)(void *))gui_set_title, dev_name);
-	}
-
-	while (!finished) {
-		struct timespec ts = {0};
-		ts.tv_nsec = 100000000L;
-		nanosleep(&ts, NULL);
-	}
-
+	rival = rival_new(on_rival_opened, on_rival_closed);
+	rival_monitor(rival, &end);
 	rival_config_free(config);
-	rival_close(dev);
+	rival_free(rival);
 	return 0;
 }

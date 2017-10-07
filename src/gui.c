@@ -1,10 +1,13 @@
 #include <ui.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "gui.h"
 #include "util.h"
 
 static uiWindow *window = NULL;
+static uiBox *configBox = NULL;
+static uiBox *errorBox = NULL;
 static struct gui_model *model = NULL;
 
 static int on_closing(uiWindow *w, void *data)
@@ -236,15 +239,19 @@ bool gui_setup()
 	uiBoxAppend(firstBox, uiControl(sensGroup), true);
 	uiBoxAppend(firstBox, uiControl(lightGroup), true);
 
-	uiBox *mainBox = uiNewVerticalBox();
+	configBox = uiNewVerticalBox();
 	uiBoxSetPadded(firstBox, true);
-	uiBoxAppend(mainBox, uiControl(firstBox), true);
-	uiBoxAppend(mainBox, uiControl(buttonBox), false);
+	uiBoxAppend(configBox, uiControl(firstBox), true);
+	uiBoxAppend(configBox, uiControl(buttonBox), false);
+
+	uiLabel *errorLabel = uiNewLabel("Connect your mouse...");
+	errorBox = uiNewVerticalBox();
+	uiBoxAppend(errorBox, uiControl(errorLabel), true);
 
 	window = uiNewWindow("rival", 400, 200, true);
 	uiWindowSetMargined(window, true);
 	uiWindowOnClosing(window, on_closing, NULL);
-	uiWindowSetChild(window, uiControl(mainBox));
+	uiWindowSetChild(window, uiControl(errorBox));
 	uiOnShouldQuit(on_should_quit, window);
 
 	uiControlShow(uiControl(window));
@@ -262,12 +269,33 @@ void gui_queue(void (*f)(void *data), void *data)
 	uiQueueMain(f, data);
 }
 
-void gui_set_title(const char *title)
+void gui_set_title(char *title)
 {
 	uiWindowSetTitle(window, title);
+}
+
+void gui_set_title_heap(char *title)
+{
+	gui_set_title(title);
+	free(title);
 }
 
 void gui_set_model(struct gui_model *m)
 {
 	model = m;
+}
+
+static void gui_set_box(uiBox *box)
+{
+	uiWindowSetChild(window, uiControl(box));
+}
+
+void gui_on_rival_opened()
+{
+	gui_queue((void (*)(void *))gui_set_box, configBox);
+}
+
+void gui_on_rival_closed()
+{
+	gui_queue((void (*)(void *))gui_set_box, errorBox);
 }

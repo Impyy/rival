@@ -37,5 +37,8 @@ struct gui_model {
 bool gui_setup();
 void *gui_main(void *data);
 void gui_queue(void (*f)(void *data), void *data);
-void gui_set_title(const char *title);
+void gui_set_title(char *title);
+void gui_set_title_heap(char *title);
 void gui_set_model(struct gui_model *model);
+void gui_on_rival_opened();
+void gui_on_rival_closed();

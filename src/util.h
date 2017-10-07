@@ -1,3 +1,5 @@
+#pragma once
+
 #include <math.h>
 
 static uint8_t color_to_byte(double c)
