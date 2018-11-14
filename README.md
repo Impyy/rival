@@ -9,7 +9,7 @@ The following mice are currently supported:
 
 ## Screenshot
 
-![](https:/alexbakker.me/u/qifxjb5a.png)
+![](https://alexbakker.me/u/qifxjb5a.png)
 
 ## Installation
 
