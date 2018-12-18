@@ -42,11 +42,11 @@ The binary can be found in _build/bin_.
 Make sure your user has permission to read/write to the hidraw device node of
 your mouse. 
 
-Example: To fix the permissions for your Rival 100, add yourself to the plugdev
-group and add the following rule to udev:
+Example: To fix the permissions for your Rival 100, create a udev rule to
+automatically add an ACL entry for logged in users:
 
 ```
-SUBSYSTEM=="hidraw", ATTRS{idVendor}=="1038", ATTRS{idProduct}=="1702", MODE="0660", GROUP="plugdev"
+SUBSYSTEM=="hidraw", ATTRS{idVendor}=="1038", ATTRS{idProduct}=="1702", TAG+="uaccess"
 ```
 
 ## The wishlist
